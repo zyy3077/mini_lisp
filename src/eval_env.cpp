@@ -69,28 +69,5 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         throw LispError("Unimplemented");
     }
 
-
-    // if (v.size() && v[0]->asSymbol() == "define"s) { //define
-    //     if (auto name = v[1]->asSymbol()) {
-    //         symbolMap[name.value()] = this->eval(v[2]);
-    //         return std::make_shared<NilValue>();
-    //     } else {
-    //         throw LispError("Malformed define.");
-    //     }
-    // } else if (auto name = expr->asSymbol()) { //被define过的符号名
-    //     auto value = symbolMap.find(*name);
-    //     if (value != symbolMap.end()) {
-    //         return value->second;
-    //     } else {
-    //         throw LispError("Variable " + *name + " not defined.");
-    //     }
-    // } else if (v.size() && v[0]->asSymbol() != "define"s) { //不是define的列表，运算
-    //     ValuePtr proc = this->eval(v[0]);
-    //     auto pair = std::dynamic_pointer_cast<PairValue>(expr);
-    //     std::vector<ValuePtr> args = evalList(pair->getCdr()); //除了符号外，即右半部分
-    //     return this->apply(proc, args); // 最后用 EvalEnv::apply 实现调用
-    // } else {
-    //     throw LispError("Unimplemented");
-    // }
      
 } 
