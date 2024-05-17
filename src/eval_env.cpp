@@ -68,6 +68,4 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
     } else {
         throw LispError("Unimplemented");
     }
-
-     
 } 
