@@ -25,6 +25,7 @@ public:
     BooleanValue();
     BooleanValue(const bool& val);
     std::string toString() const override;
+    bool getVal();
 };
 class NumericValue : public Value {
     double val;

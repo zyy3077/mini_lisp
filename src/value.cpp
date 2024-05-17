@@ -121,3 +121,6 @@ std::shared_ptr<Value> PairValue::getCar() {
 BuiltinFuncType* BuiltinProcValue::getFunc() {
     return func;
 }
+bool BooleanValue::getVal() {
+    return val;
+}
