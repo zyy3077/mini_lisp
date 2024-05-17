@@ -69,6 +69,7 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         throw LispError("Unimplemented");
     }
 
+
     // if (v.size() && v[0]->asSymbol() == "define"s) { //define
     //     if (auto name = v[1]->asSymbol()) {
     //         symbolMap[name.value()] = this->eval(v[2]);
