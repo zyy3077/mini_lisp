@@ -31,7 +31,7 @@ ValuePtr print(const std::vector<ValuePtr>& params) {
     std::cout << params[0]->toString() << '\n';
     return std::make_shared<NilValue>();
 }
-const std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtinfuncs = {
+const std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> BUILTIN_FUNCS = {
     {"+", std::make_shared<BuiltinProcValue>(&add)},
     {"print", std::make_shared<BuiltinProcValue>(&print)},
     {"-", std::make_shared<BuiltinProcValue>(&substract)}

@@ -14,7 +14,7 @@ using namespace std::literals;
 
 EvalEnv::EvalEnv() {
     //初始化时添加内置过程符号表
-    symbolMap.insert(builtinfuncs.begin(), builtinfuncs.end());
+    symbolMap.insert(BUILTIN_FUNCS.begin(), BUILTIN_FUNCS.end());
 }
 //把expr转化为vector后的各项求值后插入result
 std::vector<ValuePtr> EvalEnv::evalList(ValuePtr expr) {

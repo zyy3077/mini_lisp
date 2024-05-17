@@ -10,7 +10,7 @@ using ValuePtr = std::shared_ptr<Value>;
 using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
 
 //builtinfunc的具体实现和map在builtin.cpp中
-extern const std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> builtinfuncs;
+extern const std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> BUILTIN_FUNCS;
 
 
 #endif
