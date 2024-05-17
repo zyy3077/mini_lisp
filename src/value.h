@@ -19,10 +19,10 @@ public:
     int asNumber();
     
 };
+using ValuePtr = std::shared_ptr<Value>;
 class BooleanValue : public Value {
     bool val;
 public:
-    BooleanValue();
     BooleanValue(const bool& val);
     std::string toString() const override;
     bool getVal();
@@ -30,7 +30,6 @@ public:
 class NumericValue : public Value {
     double val;
 public:
-    NumericValue();
     NumericValue(const double& val);
     std::string toString() const override;
     friend int Value::asNumber();
@@ -38,7 +37,6 @@ public:
 class StringValue : public Value {
     std::string val;
 public:
-    StringValue();
     StringValue(const std::string& val);
     std::string toString() const override;  
 };
@@ -50,7 +48,6 @@ public:
 class SymbolValue : public Value {
     std::string symbol;
 public:
-    SymbolValue();
     SymbolValue(const std::string& symbol);
     std::string toString() const override;
 };
@@ -58,7 +55,6 @@ class PairValue : public Value {
     std::shared_ptr<Value> left;
     std::shared_ptr<Value> right;
 public:
-    PairValue();
     PairValue(const std::shared_ptr<Value>& left, const std::shared_ptr<Value>& right);
     std::string toString() const override;
     friend std::vector<std::shared_ptr<Value>> Value::toVector();
@@ -66,13 +62,21 @@ public:
     std::shared_ptr<Value> getCar();
 };
 class BuiltinProcValue : public Value {
-    using ValuePtr = std::shared_ptr<Value>;
     using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
     BuiltinFuncType* func = nullptr;
 public:
     std::string toString() const override;
-    BuiltinProcValue();
     BuiltinProcValue(BuiltinFuncType* func);
     BuiltinFuncType* getFunc();
 };
+class LambdaValue : public Value {
+private:
+    std::vector<std::string> params;
+    std::vector<ValuePtr> body;
+    // [...]
+public:
+    LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body);
+    std::string toString() const override; // 如前所述，返回 #<procedure> 即可
+};
+
 #endif

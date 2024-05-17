@@ -7,21 +7,16 @@
 //构造函数
 Value::Value(){}
 Value::~Value(){}
-BooleanValue::BooleanValue(): Value() {}
 BooleanValue::BooleanValue(const bool& val): Value(), val{val} {}
-NumericValue::NumericValue(): Value() {}
 NumericValue::NumericValue(const double& val): Value(), val{val} {}
-StringValue::StringValue():Value() {}
 StringValue::StringValue(const std::string& val): Value(), val{val} {}
 NilValue::NilValue(): Value() {}
-SymbolValue::SymbolValue(): Value() {}
 SymbolValue::SymbolValue(const std::string& symbol): Value(), symbol{symbol} {}
-PairValue::PairValue(): Value() {}
 PairValue::PairValue(const std::shared_ptr<Value>& left, const std::shared_ptr<Value>& right): Value(), left{left}, right{right} {}
 using ValuePtr = std::shared_ptr<Value>;
 using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
-BuiltinProcValue::BuiltinProcValue() : Value(), func{nullptr} {}
 BuiltinProcValue::BuiltinProcValue(BuiltinFuncType* func) : Value(), func(func) {}
+LambdaValue::LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body) : params{params}, body{body} {}
 
 //toString函数
 std::string BooleanValue::toString() const {
@@ -61,6 +56,9 @@ std::string PairValue::toString() const {
     return "(" + res + ")";
 }
 std::string BuiltinProcValue::toString() const {
+    return "#<procedure>";
+}
+std::string LambdaValue::toString() const {
     return "#<procedure>";
 }
 

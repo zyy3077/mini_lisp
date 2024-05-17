@@ -31,7 +31,7 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
         auto func = builtin->getFunc();
         return func(args);
     } else {
-        throw LispError("Unimplemented builtin function");
+        throw LispError("Unimplemented function");
     }
 }
 //求值
