@@ -16,7 +16,7 @@ PairValue::PairValue(const std::shared_ptr<Value>& left, const std::shared_ptr<V
 using ValuePtr = std::shared_ptr<Value>;
 using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
 BuiltinProcValue::BuiltinProcValue(BuiltinFuncType* func) : Value(), func(func) {}
-LambdaValue::LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body) : params{params}, body{body} {}
+LambdaValue::LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body, std::shared_ptr<EvalEnv> initEnv) : params{params}, body{body}, initEnv{initEnv} {}
 
 //toString函数
 std::string BooleanValue::toString() const {

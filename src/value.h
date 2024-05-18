@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include "./eval_env.h"
+class EvalEnv;
 
 class Value {
 public:
@@ -73,9 +75,10 @@ class LambdaValue : public Value {
 private:
     std::vector<std::string> params;
     std::vector<ValuePtr> body;
+    std::shared_ptr<EvalEnv> initEnv = nullptr;//被定义时的环境
     // [...]
 public:
-    LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body);
+    LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body, std::shared_ptr<EvalEnv> initEnv);
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
 };
 

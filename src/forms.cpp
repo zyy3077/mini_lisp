@@ -55,26 +55,29 @@ ValuePtr orForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     return std::make_shared<BooleanValue>(false);
 }
 ValuePtr labmdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 2) {
-        throw LispError("wrong argument num for lambda");
-    }
     std::vector<std::string> params;
     std::ranges::transform(args[0]->toVector(),
                            std::back_inserter(params),
                            [](ValuePtr v) { return v->toString(); });//args[0]中各项转化为字符串后插入params中
-    if (typeid(*args[1]) == typeid(PairValue)) {
-        return std::make_shared<LambdaValue>(params, args[1]->toVector());
-    } else return std::make_shared<LambdaValue>(params, std::vector<ValuePtr>{args[1]});
+    std::vector<ValuePtr> n_args(args.begin() + 1, args.end());
+    return std::make_shared<LambdaValue>(params, n_args, env.shared_from_this());
 }
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     if (args.size() != 2) {
         throw LispError("wrong argument num for define");
-    } else if (auto name = args[0]->asSymbol()) {
-        env.symbolMap[*name] = env.eval(args[1]);
+    } 
+    std::string name;
+    ValuePtr value;
+    if (args[0]->asSymbol()) {
+        name = args[0]->asSymbol().value();
+        value = env.eval(args[1]);
+        env.defineBinding(name, value);
         return std::make_shared<NilValue>();
     } else if (auto pair = std::dynamic_pointer_cast<PairValue>(args[0])) {
         std::vector<ValuePtr> lambdaArgs = {pair->getCdr(), args[1]};
-        env.symbolMap[pair->getCar()->toString()] = labmdaForm(lambdaArgs, env);
+        name = pair->getCar()->toString();
+        value = labmdaForm(lambdaArgs, env);
+        env.defineBinding(name, value);
         return std::make_shared<NilValue>();
     } else {
         throw LispError("Unimplemented");
