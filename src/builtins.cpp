@@ -1,7 +1,7 @@
 #include "./builtins.h"
 #include <iostream>
 
-ValuePtr add(const std::vector<ValuePtr>& params) {
+ValuePtr add(const std::vector<ValuePtr>& params, EvalEnv& env) {
     double result = 0;
     for (const auto& i : params) {
         if (!i->isNumber()) {
@@ -11,7 +11,7 @@ ValuePtr add(const std::vector<ValuePtr>& params) {
     }
     return std::make_shared<NumericValue>(result);
 }
-ValuePtr substract(const std::vector<ValuePtr>& params) {
+ValuePtr substract(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (params.size() == 1) {
         if (!params[0]->isNumber()) {
             throw LispError("Cannot add a non-numeric value.");
@@ -26,12 +26,12 @@ ValuePtr substract(const std::vector<ValuePtr>& params) {
         throw LispError("too much arguments for substraction.");
     }
 }
-ValuePtr print(const std::vector<ValuePtr>& params) {
+ValuePtr print(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (params.size() > 1) throw LispError("too much arguments in print");
     std::cout << params[0]->toString() << '\n';
     return std::make_shared<NilValue>();
 }
-ValuePtr multiply(const std::vector<ValuePtr>& params) {
+ValuePtr multiply(const std::vector<ValuePtr>& params, EvalEnv& env) {
     double result = 1;
     for (const auto& i : params) {
         if (!i->isNumber()) {
@@ -41,7 +41,7 @@ ValuePtr multiply(const std::vector<ValuePtr>& params) {
     }
     return std::make_shared<NumericValue>(result);
 }
-ValuePtr greater(const std::vector<ValuePtr>& params) {
+ValuePtr greater(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (params.size() != 2) {
         throw LispError("wrong argument num for >");
     } else if (!params[0]->isNumber() || !params[1]->isNumber()) {

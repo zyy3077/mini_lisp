@@ -65,7 +65,7 @@ public:
     std::shared_ptr<Value> getCar();
 };
 class BuiltinProcValue : public Value {
-    using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
+    using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
     BuiltinFuncType* func = nullptr;
 public:
     std::string toString() const override;

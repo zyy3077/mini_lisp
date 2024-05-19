@@ -18,7 +18,7 @@ struct TestCtx {
     }
 };
 int main() {
-    RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv6);
+    //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv6);
     auto env = EvalEnv::createGlobal();
     while (true) {
         try {

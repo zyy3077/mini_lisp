@@ -14,7 +14,7 @@ NilValue::NilValue(): Value() {}
 SymbolValue::SymbolValue(const std::string& symbol): Value(), symbol{symbol} {}
 PairValue::PairValue(const std::shared_ptr<Value>& left, const std::shared_ptr<Value>& right): Value(), left{left}, right{right} {}
 using ValuePtr = std::shared_ptr<Value>;
-using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
+using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
 BuiltinProcValue::BuiltinProcValue(BuiltinFuncType* func) : Value(), func(func) {}
 LambdaValue::LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body, std::shared_ptr<EvalEnv> initEnv) : params{params}, body{body}, initEnv{initEnv} {}
 
@@ -110,13 +110,14 @@ std::vector<std::shared_ptr<Value>> Value::toVector() {
     }
     return vec;
 }
-
 std::shared_ptr<Value> PairValue::getCdr() {
     return right;
 }
 std::shared_ptr<Value> PairValue::getCar() {
     return left;
 }
+
+
 BuiltinFuncType* BuiltinProcValue::getFunc() {
     return func;
 }

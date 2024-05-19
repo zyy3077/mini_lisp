@@ -30,7 +30,7 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
     if (typeid(*proc) == typeid(BuiltinProcValue)) {
         auto builtin = std::dynamic_pointer_cast<BuiltinProcValue>(proc);
         auto func = builtin->getFunc();
-        return func(args);
+        return func(args, *this);
     } else if (typeid(*proc) == typeid(LambdaValue)) {
         auto lambda = std::dynamic_pointer_cast<LambdaValue>(proc);
         return lambda->apply(args);
@@ -40,13 +40,15 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
 }
 ValuePtr EvalEnv::lookupBinding(const std::string& name) {
     auto currentEnv = this;
+    
     while(currentEnv->symbolMap.find(name) == currentEnv->symbolMap.end()) {
         currentEnv = this->parent.get();
+        if (!currentEnv) break;//parent为nullptr的为最大的环境
     }
     if (currentEnv) {
         return currentEnv->symbolMap.at(name);
     } else {
-        throw LispError("Variable " + name + " not defined.");
+        throw LispError("Variable \"" + name + "\" not defined.");
     }
 }
 void EvalEnv::defineBinding(const std::string& name, ValuePtr value) {
@@ -72,7 +74,7 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
                 ValuePtr proc = this->eval(v[0]);
                 std::vector<ValuePtr> args = evalList(pair->getCdr()); //除了符号外，即右半部分
                 return this->apply(proc, args); // 最后用 EvalEnv::apply 实现调用
-            }
+            } 
         } else if (typeid(*(pair->getCar())) == typeid(PairValue)) {
             auto proc = this->eval(std::dynamic_pointer_cast<PairValue>(pair->getCar()));
             std::vector<ValuePtr> args = evalList(pair->getCdr());
