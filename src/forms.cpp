@@ -59,22 +59,23 @@ ValuePtr labmdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     std::ranges::transform(args[0]->toVector(),
                            std::back_inserter(params),
                            [](ValuePtr v) { return v->toString(); });//args[0]中各项转化为字符串后插入params中
-    std::vector<ValuePtr> n_args(args.begin() + 1, args.end());
+    std::vector<ValuePtr> n_args(args.begin() + 1, args.end());//body
     return std::make_shared<LambdaValue>(params, n_args, env.shared_from_this());
 }
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 2) {
-        throw LispError("wrong argument num for define");
-    } 
     std::string name;
     ValuePtr value;
     if (args[0]->asSymbol()) {
+        if (args.size() > 2) {
+            throw LispError("too much operands for define");
+        }
         name = args[0]->asSymbol().value();
         value = env.eval(args[1]);
         env.defineBinding(name, value);
         return std::make_shared<NilValue>();
     } else if (auto pair = std::dynamic_pointer_cast<PairValue>(args[0])) {
-        std::vector<ValuePtr> lambdaArgs = {pair->getCdr(), args[1]};
+        std::vector<ValuePtr> lambdaArgs = {pair->getCdr()};//第一个元素为形参列表
+        lambdaArgs.insert(lambdaArgs.end(), args.begin() + 1, args.end());//剩下的元素为表达式中剩下的元素
         name = pair->getCar()->toString();
         value = labmdaForm(lambdaArgs, env);
         env.defineBinding(name, value);

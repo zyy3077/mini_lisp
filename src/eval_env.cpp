@@ -31,6 +31,9 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
         auto builtin = std::dynamic_pointer_cast<BuiltinProcValue>(proc);
         auto func = builtin->getFunc();
         return func(args);
+    } else if (typeid(*proc) == typeid(LambdaValue)) {
+        auto lambda = std::dynamic_pointer_cast<LambdaValue>(proc);
+        return lambda->apply(args);
     } else {
         throw LispError("Unimplemented function");
     }
@@ -70,6 +73,10 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
                 std::vector<ValuePtr> args = evalList(pair->getCdr()); //除了符号外，即右半部分
                 return this->apply(proc, args); // 最后用 EvalEnv::apply 实现调用
             }
+        } else if (typeid(*(pair->getCar())) == typeid(PairValue)) {
+            auto proc = this->eval(std::dynamic_pointer_cast<PairValue>(pair->getCar()));
+            std::vector<ValuePtr> args = evalList(pair->getCdr());
+            return this->apply(proc, args);
         } else {
             throw LispError("first argument should be symbol");
         }
@@ -79,3 +86,14 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         throw LispError("Unimplemented");
     }
 } 
+
+std::shared_ptr<EvalEnv> EvalEnv::createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args) {
+    //设置上级环境
+    auto childEnv = createGlobal();
+    childEnv->parent = shared_from_this();
+    //params与args一一绑定
+    for (int i = 0; i < params.size(); ++i) {
+        childEnv->defineBinding(params[i], args[i]); 
+    }
+    return childEnv;
+}

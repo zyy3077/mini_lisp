@@ -18,7 +18,8 @@ public:
     bool isSeflEvaluating();
     std::vector<std::shared_ptr<Value>> toVector();
     std::optional<std::string> asSymbol();
-    int asNumber();
+    double asNumber();
+
     
 };
 using ValuePtr = std::shared_ptr<Value>;
@@ -34,7 +35,7 @@ class NumericValue : public Value {
 public:
     NumericValue(const double& val);
     std::string toString() const override;
-    friend int Value::asNumber();
+    double getVal();
 };
 class StringValue : public Value {
     std::string val;
@@ -80,6 +81,7 @@ private:
 public:
     LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body, std::shared_ptr<EvalEnv> initEnv);
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
+    ValuePtr apply(const std::vector<ValuePtr>& args);
 };
 
 #endif

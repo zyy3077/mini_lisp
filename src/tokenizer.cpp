@@ -56,8 +56,7 @@ TokenPtr Tokenizer::nextToken(int& pos) {
             do {
                 pos++;
             } while (pos < input.size() && !std::isspace(input[pos]) &&
-                     //!TOKEN_END.contains(input[pos]));
-                     TOKEN_END.find(input[pos]) == TOKEN_END.end());
+                     !TOKEN_END.contains(input[pos]));     
             auto text = input.substr(start, pos - start);
             if (text == ".") {
                 return Token::dot();

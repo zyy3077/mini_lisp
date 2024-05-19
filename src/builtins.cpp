@@ -2,7 +2,7 @@
 #include <iostream>
 
 ValuePtr add(const std::vector<ValuePtr>& params) {
-    int result = 0;
+    double result = 0;
     for (const auto& i : params) {
         if (!i->isNumber()) {
             throw LispError("Cannot add a non-numeric value.");
@@ -32,7 +32,7 @@ ValuePtr print(const std::vector<ValuePtr>& params) {
     return std::make_shared<NilValue>();
 }
 ValuePtr multiply(const std::vector<ValuePtr>& params) {
-    int result = 1;
+    double result = 1;
     for (const auto& i : params) {
         if (!i->isNumber()) {
             throw LispError("Cannot multiply a non-numeric value.");

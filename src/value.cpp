@@ -71,9 +71,9 @@ bool Value::isNumber() {
     if(dynamic_cast<NumericValue*>(this)) return true;
     return false;
 }
-int Value::asNumber() {
+double Value::asNumber() {
     NumericValue* num = dynamic_cast<NumericValue*>(this);
-    return num->val;
+    return num->getVal();
 }
 bool Value::isSeflEvaluating() {
     if(dynamic_cast<BooleanValue*>(this)) return true;
@@ -90,6 +90,7 @@ std::optional<std::string> Value::asSymbol() {
         return std::nullopt;
     }
 }
+
 
 //toVector函数
 std::vector<std::shared_ptr<Value>> Value::toVector() {
@@ -121,4 +122,20 @@ BuiltinFuncType* BuiltinProcValue::getFunc() {
 }
 bool BooleanValue::getVal() {
     return val;
+}
+double NumericValue::getVal() {
+    return val;
+}
+
+ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args) {
+    //首先是创建一个新的 Lambda 内部求值环境。
+    //这个应当包含 LambdaValue::params 数据成员到 args 的一一绑定。
+    //然后，将它的上级环境设置为之前保存的 parent。
+    //最后，在这个求值环境下对 body 数据成员的表达式逐一求值，返回最后一个即可。
+    auto child = initEnv->createChild(params, args);
+    ValuePtr res = nullptr;
+    for (auto expr : body) {
+        res = child->eval(expr);
+    }
+    return res;
 }

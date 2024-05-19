@@ -13,6 +13,7 @@ class EvalEnv : public std::enable_shared_from_this<EvalEnv>{
     std::shared_ptr<EvalEnv> parent = nullptr;
     EvalEnv();
 public:
+    std::shared_ptr<EvalEnv> createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args);
     static std::shared_ptr<EvalEnv> createGlobal() {
         return std::shared_ptr<EvalEnv>(new EvalEnv());
     }//确保 EvalEnv 的实例总是被 std::shared_ptr 管理
