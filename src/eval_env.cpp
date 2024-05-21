@@ -25,7 +25,7 @@ std::vector<ValuePtr> EvalEnv::evalList(ValuePtr expr) {
                            [this](ValuePtr v) { return this->eval(v); });
     return result;
 }
-//调用内置过程
+//调用内置过程和lambda
 ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
     if (typeid(*proc) == typeid(BuiltinProcValue)) {
         auto builtin = std::dynamic_pointer_cast<BuiltinProcValue>(proc);
@@ -35,7 +35,7 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
         auto lambda = std::dynamic_pointer_cast<LambdaValue>(proc);
         return lambda->apply(args);
     } else {
-        throw LispError("Unimplemented function");
+        throw LispError("Unimplemented function \"" + proc->toString() + '\"');
     }
 }
 ValuePtr EvalEnv::lookupBinding(const std::string& name) {
@@ -61,10 +61,10 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         return expr;
     } else if (expr->isNil()) {
         throw LispError("Evaluating nil is prohibited.");
-    } 
-    std::vector<ValuePtr> v = std::move(expr->toVector());
-    //expr不是pair时，v为空
-    if(v.size()) {
+    } else if (auto name = expr->asSymbol()) {
+        return lookupBinding(name.value());//在自身环境和上级环境中查找
+    } else if(expr->isList()) {
+        std::vector<ValuePtr> v = std::move(expr->toVector());
         auto pair = std::dynamic_pointer_cast<PairValue>(expr);
         if (auto name = pair->getCar()->asSymbol()) {
             //特殊形式
@@ -82,8 +82,6 @@ ValuePtr EvalEnv::eval(ValuePtr expr) {
         } else {
             throw LispError("first argument should be symbol");
         }
-    } else if (auto name = expr->asSymbol()) { //被define过的符号名
-        return lookupBinding(name.value());//在自身环境和上级环境中查找
     } else {
         throw LispError("Unimplemented");
     }

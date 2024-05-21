@@ -19,7 +19,9 @@ public:
     std::vector<std::shared_ptr<Value>> toVector();
     std::optional<std::string> asSymbol();
     double asNumber();
-
+    bool isList();
+    bool isFalse();
+     virtual bool isEqual(const Value& other) const = 0;
     
 };
 using ValuePtr = std::shared_ptr<Value>;
@@ -28,31 +30,37 @@ class BooleanValue : public Value {
 public:
     BooleanValue(const bool& val);
     std::string toString() const override;
-    bool getVal();
+    bool getVal() const;
+    bool isEqual(const Value& other) const override;
 };
 class NumericValue : public Value {
     double val;
 public:
     NumericValue(const double& val);
     std::string toString() const override;
-    double getVal();
+    double getVal() const;
+    bool isEqual(const Value& other) const override;
 };
 class StringValue : public Value {
     std::string val;
 public:
     StringValue(const std::string& val);
-    std::string toString() const override;  
+    std::string toString() const override; 
+    std::string getVal() const; 
+    bool isEqual(const Value& other) const override;
 };
 class NilValue : public Value {
 public:
     NilValue();
     std::string toString() const override;
+    bool isEqual(const Value& other) const override;
 };
 class SymbolValue : public Value {
     std::string symbol;
 public:
     SymbolValue(const std::string& symbol);
     std::string toString() const override;
+    bool isEqual(const Value& other) const override;
 };
 class PairValue : public Value {
     std::shared_ptr<Value> left;
@@ -63,6 +71,7 @@ public:
     friend std::vector<std::shared_ptr<Value>> Value::toVector();
     std::shared_ptr<Value> getCdr();
     std::shared_ptr<Value> getCar();
+    bool isEqual(const Value& other) const override;
 };
 class BuiltinProcValue : public Value {
     using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
@@ -70,7 +79,8 @@ class BuiltinProcValue : public Value {
 public:
     std::string toString() const override;
     BuiltinProcValue(BuiltinFuncType* func);
-    BuiltinFuncType* getFunc();
+    BuiltinFuncType* getFunc() const;
+    bool isEqual(const Value& other) const override;
 };
 class LambdaValue : public Value {
 private:
@@ -82,6 +92,7 @@ public:
     LambdaValue(const std::vector<std::string>& params, const std::vector<ValuePtr>& body, std::shared_ptr<EvalEnv> initEnv);
     std::string toString() const override; // 如前所述，返回 #<procedure> 即可
     ValuePtr apply(const std::vector<ValuePtr>& args);
+    bool isEqual(const Value& other) const override;
 };
 
 #endif

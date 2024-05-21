@@ -9,10 +9,10 @@ using ValuePtr = std::shared_ptr<Value>;
 class EvalEnv : public std::enable_shared_from_this<EvalEnv>{
     std::vector<ValuePtr> evalList(ValuePtr expr);
     std::unordered_map<std::string, ValuePtr> symbolMap{};
-    ValuePtr apply(ValuePtr proc, std::vector<ValuePtr> args);
     std::shared_ptr<EvalEnv> parent = nullptr;
     EvalEnv();
 public:
+    ValuePtr apply(ValuePtr proc, std::vector<ValuePtr> args);
     std::shared_ptr<EvalEnv> createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args);
     static std::shared_ptr<EvalEnv> createGlobal() {
         return std::shared_ptr<EvalEnv>(new EvalEnv());

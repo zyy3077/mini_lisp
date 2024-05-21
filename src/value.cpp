@@ -63,6 +63,13 @@ std::string LambdaValue::toString() const {
 }
 
 //is/as函数
+bool Value::isList() {
+    if (typeid(*this) == typeid(NilValue)) return true;
+    if (auto pair = dynamic_cast<PairValue*>(this)) {
+        if (pair->getCdr()->isList()) return true;
+    }
+    return false;
+}
 bool Value::isNil() {
     if(dynamic_cast<NilValue*>(this)) return true;
     return false;
@@ -90,7 +97,44 @@ std::optional<std::string> Value::asSymbol() {
         return std::nullopt;
     }
 }
-
+bool Value::isFalse() {
+    if (auto boolean = dynamic_cast<BooleanValue*>(this)) {
+            if (boolean->getVal() == false) return true;
+    }
+    return false; 
+}
+bool BooleanValue::isEqual(const Value& other) const {
+    const BooleanValue* otherBoolean = dynamic_cast<const BooleanValue*>(&other);
+    return otherBoolean && otherBoolean->getVal() == this->getVal();
+}
+bool NumericValue::isEqual(const Value& other) const {
+    const NumericValue* otherNumeric = dynamic_cast<const NumericValue*>(&other);
+    return otherNumeric && otherNumeric->getVal() == this->getVal();
+}
+bool StringValue::isEqual(const Value& other) const {
+    const StringValue* otherString = dynamic_cast<const StringValue*>(&other);
+    return otherString && otherString->getVal() == this->getVal();
+}
+bool NilValue::isEqual(const Value& other) const {
+    const NilValue* otherNil = dynamic_cast<const NilValue*>(&other);
+    return otherNil;
+}
+bool SymbolValue::isEqual(const Value& other) const {
+    const SymbolValue* otherSymbol= dynamic_cast<const SymbolValue*>(&other);
+    return otherSymbol && otherSymbol->toString() == this->toString();
+}
+bool PairValue::isEqual(const Value& other) const {
+    const PairValue* otherPair = dynamic_cast<const PairValue*>(&other);
+    return otherPair && left->isEqual(*otherPair->left) && right->isEqual(*otherPair->right);
+}
+bool BuiltinProcValue::isEqual(const Value& other) const {
+    const BuiltinProcValue* otherSymbol= dynamic_cast<const BuiltinProcValue*>(&other);
+    return otherSymbol && otherSymbol->getFunc() == this->getFunc();
+}
+bool LambdaValue::isEqual(const Value& other) const {
+    const LambdaValue* otherSymbol= dynamic_cast<const LambdaValue*>(&other);
+    return otherSymbol && otherSymbol == this;
+}
 
 //toVector函数
 std::vector<std::shared_ptr<Value>> Value::toVector() {
@@ -118,13 +162,16 @@ std::shared_ptr<Value> PairValue::getCar() {
 }
 
 
-BuiltinFuncType* BuiltinProcValue::getFunc() {
+BuiltinFuncType* BuiltinProcValue::getFunc() const {
     return func;
 }
-bool BooleanValue::getVal() {
+bool BooleanValue::getVal() const {
     return val;
 }
-double NumericValue::getVal() {
+double NumericValue::getVal() const {
+    return val;
+}
+std::string StringValue::getVal() const {
     return val;
 }
 

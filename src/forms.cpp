@@ -11,19 +11,14 @@ ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
         return args[0];
     }
 }
-bool is_false(ValuePtr condition) {
-    if (auto boolean = std::dynamic_pointer_cast<BooleanValue>(condition)) {
-            if (boolean->getVal() == false) return true;
-    }
-    return false; 
-}
+
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     if (args.size() != 3) {
         throw LispError("wrong argument num for if");
     } else {
         auto condition = env.eval(args[0]);
         //如果condition是#f，求值第二个表达式，否则求值第一个
-        if (is_false(condition)) {
+        if (condition->isFalse()) {
             return env.eval(args[2]);
         } else {
             return env.eval(args[1]);
@@ -36,7 +31,7 @@ ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     }
     for (auto i : args) {
         auto condition = env.eval(i);
-        if (is_false(condition)) {
+        if (condition->isFalse()) {
             return std::make_shared<BooleanValue>(false);
         }
     }
@@ -48,7 +43,7 @@ ValuePtr orForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     }
     for (auto i : args) {
         auto condition = env.eval(i);
-        if(!is_false(condition)) {
+        if(!condition->isFalse()) {
             return condition;//返回第一个不为#f的值
         }
     }
