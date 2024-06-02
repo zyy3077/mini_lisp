@@ -160,7 +160,12 @@ std::shared_ptr<Value> PairValue::getCdr() {
 std::shared_ptr<Value> PairValue::getCar() {
     return left;
 }
-
+void PairValue::setCdr(ValuePtr n_right) {
+    right = n_right;
+}
+void PairValue::setCar(ValuePtr n_left) {
+    left = n_left;
+}
 
 BuiltinFuncType* BuiltinProcValue::getFunc() const {
     return func;

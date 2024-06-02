@@ -63,7 +63,16 @@
         "algorithm": "cpp",
         "array": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "*.tcc": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "functional": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "random": "cpp",
+        "string_view": "cpp",
+        "numbers": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

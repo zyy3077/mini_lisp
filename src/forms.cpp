@@ -2,27 +2,24 @@
 #include <algorithm>
 #include <iterator>
 #include <ranges> 
-
-
-ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 1) {
-        throw LispError("wrong argument num for quote");
-    } else {
-        return args[0];
+#include <iostream>
+void argumentNum(int x, int params) {
+    if (params != x) {
+        throw LispError(std::to_string(x) + " arguments expected but " + std::to_string(params) + " were given");
     }
 }
-
+ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    argumentNum(1, args.size());
+    return args[0];
+}
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 3) {
-        throw LispError("wrong argument num for if");
+    argumentNum(3, args.size());
+    auto condition = env.eval(args[0]);
+    //如果condition是#f，求值第二个表达式，否则求值第一个
+    if (condition->isFalse()) {
+        return env.eval(args[2]);
     } else {
-        auto condition = env.eval(args[0]);
-        //如果condition是#f，求值第二个表达式，否则求值第一个
-        if (condition->isFalse()) {
-            return env.eval(args[2]);
-        } else {
-            return env.eval(args[1]);
-        }
+        return env.eval(args[1]);
     }
 }
 ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
@@ -54,8 +51,8 @@ ValuePtr labmdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     std::ranges::transform(args[0]->toVector(),
                            std::back_inserter(params),
                            [](ValuePtr v) { return v->toString(); });//args[0]中各项转化为字符串后插入params中
-    std::vector<ValuePtr> n_args(args.begin() + 1, args.end());//body
-    return std::make_shared<LambdaValue>(params, n_args, env.shared_from_this());
+    std::vector<ValuePtr> body(args.begin() + 1, args.end());//body
+    return std::make_shared<LambdaValue>(params, body, env.shared_from_this());
 }
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     std::string name;
@@ -79,13 +76,91 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
         throw LispError("Unimplemented");
     }
 };
-
+ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    if (args.size() == 0) throw LispError("arg expected in \"cond\"");
+    for (auto it = args.begin(); it != args.end(); ++it) {
+        if ((*it)->isList()) {
+            auto pair = std::dynamic_pointer_cast<PairValue>(*it);
+            if (auto sym = std::dynamic_pointer_cast<SymbolValue>(pair->getCar())) {
+                if(sym->asSymbol() == "else") {
+                    if (it == args.end() - 1) {
+                    auto cdr = std::dynamic_pointer_cast<PairValue>(pair->getCdr());
+                    return env.eval(cdr->getCar());
+                    } else {
+                        throw LispError("\"else\" can only be at the end of \"cond\"");
+                    }
+                }
+            }
+            auto cond = env.eval(pair->getCar());
+            if (!cond->isFalse()) {
+                if (pair->getCdr()->isNil()) return cond;
+                auto vec = pair->toVector();
+                ValuePtr res = nullptr;
+                for (auto i : vec) {
+                    res = env.eval(i);
+                }
+                return res;
+            }
+        } else {
+            throw LispError("pairValue expected in \"cond\"");
+        }
+    }
+    throw LispError("all conditions are false");
+}
+ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    ValuePtr res = nullptr;
+    for (auto arg : args) {
+        res = env.eval(arg);
+    }
+    return res;
+}
+ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    //(let ((形参名1 值1)
+    //      (形参名2 值2)...)
+    //     表达式...)
+    //(let ((x 5) 
+    //     (y 10)) 
+    //     (print x) (print y) (+ x y))
+    std::vector<std::string> params;
+    std::vector<ValuePtr> arguments;
+    std::vector<ValuePtr> body(args.begin() + 1, args.end());
+    if (!args[0]->isList()) {
+        throw LispError("first argument should be a list");
+    }
+    auto vec = std::dynamic_pointer_cast<PairValue>(args[0])->toVector(); //{(name, val), (name, val), ...}
+    for (auto p : vec) {
+        auto v = std::dynamic_pointer_cast<PairValue>(p)->toVector(); //{name, val}
+        params.push_back(v[0]->toString());
+        arguments.push_back(v[1]);
+    }
+    auto lambda = std::make_shared<LambdaValue>(params, body, env.shared_from_this());
+    return env.apply(lambda, arguments);
+}
+ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    argumentNum(1, args.size());
+    if (typeid(*args[0]) != typeid(PairValue)) return args[0];
+    auto pair = std::dynamic_pointer_cast<PairValue>(args[0]);
+    ValuePtr car = pair->getCar();
+    ValuePtr cdr = pair->getCdr();
+    if (typeid(*car) == typeid(SymbolValue) && car->asSymbol() == "unquote") {
+        if (auto cdrPair = std::dynamic_pointer_cast<PairValue>(cdr)) {
+        return env.eval(cdrPair->getCar());
+        } else return env.eval(cdr);
+    } 
+    car = quasiquoteForm({car}, env);
+    cdr = quasiquoteForm({cdr}, env);
+    return std::make_shared<PairValue>(car, cdr);    
+}
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS = {
     {"define", defineForm}, 
     {"quote", quoteForm}, 
     {"if", ifForm}, 
     {"and", andForm}, 
     {"or", orForm}, 
-    {"lambda", labmdaForm}
+    {"lambda", labmdaForm},
+    {"cond", condForm},
+    {"begin", beginForm},
+    {"let", letForm}, 
+    {"quasiquote",quasiquoteForm}, 
     //其他特殊形式
 };

@@ -72,6 +72,8 @@ public:
     std::shared_ptr<Value> getCdr();
     std::shared_ptr<Value> getCar();
     bool isEqual(const Value& other) const override;
+    void setCdr(ValuePtr n_right);
+    void setCar(ValuePtr n_left);
 };
 class BuiltinProcValue : public Value {
     using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
