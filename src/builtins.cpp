@@ -119,9 +119,18 @@ ValuePtr display(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //返回值：未定义；建议空表。
     argumentNumError(1, params.size());
     if (auto string = std::dynamic_pointer_cast<StringValue>(params[0])) {
-        std::cout << string->getVal() << '\n';
+        std::cout << string->getVal();
     } else {
-        std::cout << '\'' << params[0]->toString() << "\n";
+        std::cout << params[0]->toString();
+    }
+    return std::make_shared<NilValue>();
+}
+ValuePtr displayLn(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    argumentNumError(1, params.size());
+    if (auto string = std::dynamic_pointer_cast<StringValue>(params[0])) {
+        std::cout << string->getVal() <<'\n';
+    } else {
+        std::cout << params[0]->toString() <<'\n';
     }
     return std::make_shared<NilValue>();
 }
@@ -473,6 +482,7 @@ const std::unordered_map<std::string, std::shared_ptr<BuiltinProcValue>> BUILTIN
     {">", std::make_shared<BuiltinProcValue>(&greater)}, 
     {"apply", std::make_shared<BuiltinProcValue>(&apply)}, 
     {"display", std::make_shared<BuiltinProcValue>(&display)}, 
+    {"displayln", std::make_shared<BuiltinProcValue>(&displayLn)},
     {"error", std::make_shared<BuiltinProcValue>(&error)}, 
     {"eval", std::make_shared<BuiltinProcValue>(&eval)}, 
     {"exit", std::make_shared<BuiltinProcValue>(&exitFunc)}, 
