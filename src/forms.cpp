@@ -68,6 +68,9 @@ ValuePtr labmdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     std::string name;
     ValuePtr value;
+    if (args.size() == 0) {
+        throw LispError("argument is expected in \"define\"");
+    }
     if (args[0]->asSymbol()) {
         if (args.size() > 2) {
             throw LispError("2 arguments expected but " + std::to_string(args.size()) + " were given in \"define\"");

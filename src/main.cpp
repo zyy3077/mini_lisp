@@ -18,7 +18,7 @@ struct TestCtx {
     }
 };
 int main(int argc, char* argv[]) {
-    RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
+    //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
     auto env = EvalEnv::createGlobal();
     std::string line;
     int mode = 1; // Default to standard input mode
@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
                     std::exit(0);
                 }
                 auto tokens = Tokenizer::tokenize(line);
-                Parser parser(std::move(tokens));
-                auto value = parser.parse();
+                Parser parser(std::move(tokens)); //含有一个token的deque
+                auto value = parser.parse(); //一个ValuePtr的deque
                 auto result = env->eval(std::move(value));
                 std::cout << result->toString() << std::endl; // 输出外部表示
             } catch (std::runtime_error& e) {

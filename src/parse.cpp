@@ -63,15 +63,15 @@ ValuePtr Parser::parseTails() {
         return std::make_shared<NilValue>();
     }
     auto car = this->parse();
+    if (tokens.empty()) throw SyntaxError("missing )");
     if (tokens.front()->getType() == TokenType::DOT) {
         tokens.pop_front();
         auto cdr = this->parse();
-        //std::cout << cdr->toString();
         if (tokens.empty()) throw SyntaxError("missing )");
         tokens.pop_front();//再弹出一个词法标记，它应当是 ')';
         return std::make_shared<PairValue>(car, cdr);
     } else {
-      auto cdr = this->parseTails();
-      return std::make_shared<PairValue>(car, cdr);
+        auto cdr = this->parseTails();
+        return std::make_shared<PairValue>(car, cdr);
     }
 }
