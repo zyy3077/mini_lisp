@@ -10,20 +10,19 @@
 struct TestCtx {
     std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
     std::string eval(std::string input) {
-        auto tokens = Tokenizer::tokenize(input);
+        auto tokens = std::move(Tokenizer::tokenize(input));
         Parser parser(std::move(tokens));
         auto value = parser.parse();
         auto result = env->eval(std::move(value));
         return result->toString();
     }
 };
-int checkBracket(const std::string& text) {
-    const char* cstr = text.c_str();
+int checkBracket(std::deque<TokenPtr>& tokens) {
     std::deque<char> stack;
-    for (int i = 0; i < strlen(cstr); ++i) {
-        if (cstr[i] == '(') {
+    for (auto& token : tokens) {
+        if (token->getType() == TokenType::LEFT_PAREN) {
             stack.push_back('(');
-        } else if(cstr[i] == ')') {
+        } else if(token->getType() == TokenType::RIGHT_PAREN) {
             if (stack.empty()) return 2; //2代表右括号多了
             stack.pop_back();
         }
@@ -32,25 +31,14 @@ int checkBracket(const std::string& text) {
     return 1; //1代表左括号多了
 }
 
-void neglectComment(std::string& line) {
-    size_t pos = line.find(';'); //忽略注释中的括号，把;后的内容删掉
-    if (pos != std::string::npos) {
-        line = line.substr(0, pos);
-    }
-}
-
-std::vector<std::string> splitExpressions(const std::string& line) {
-    std::vector<std::string> expressions;
-    std::string currentExpression;
-    for (char c : line) { 
-        currentExpression += c;
-        if (currentExpression == " ") {
-            currentExpression = "";
-            continue;
-        }
+std::deque<std::deque<TokenPtr>> splitExpressions(std::deque<TokenPtr>& tokens) {
+    std::deque<std::deque<TokenPtr>> expressions;
+    std::deque<TokenPtr> currentExpression;
+    for (auto& token : tokens) { 
+        currentExpression.push_back(std::move(token));
         if (checkBracket(currentExpression) == 0) { //完整表达式
-            expressions.push_back(currentExpression);
-            currentExpression = "";
+            expressions.push_back(std::move(currentExpression));
+            currentExpression.clear();
         }
     }
     return expressions;
@@ -84,25 +72,29 @@ int main(int argc, char* argv[]) {
                     std::cin.clear(); 
                     continue;
                 }
-                neglectComment(line);
-                std::string text = line;
-                while (checkBracket(text)) {
-                    if (checkBracket(text) == 2) {
+                auto current_tokens = Tokenizer::tokenize(line);
+                auto tokens = std::move(current_tokens);
+                while (checkBracket(tokens) != 0) {
+                    if (checkBracket(tokens) == 2) { //右括号多了
                         throw SyntaxError("too much \')\'");
+                    } else { //左括号多了
+                        std::getline(std::cin, line);
+                        if (std::cin.eof()) {
+                            std::cin.clear(); 
+                            continue;
+                        }
+                        current_tokens = Tokenizer::tokenize(line);
+                        for (auto& token : current_tokens) {
+                            tokens.push_back(std::move(token));
+                        }
                     }
-                    std::getline(std::cin, line);
-                    if (std::cin.eof()) continue;
-                    neglectComment(line);
-                    text += line;
-                } //读入直到括号匹配再tokenize
-                std::vector<std::string> expressions = splitExpressions(text); //对每个表达式求值
-                if (text == "") continue;
-                for (const std::string& expression : expressions) {
-                    auto tokens = Tokenizer::tokenize(expression);
-                    Parser parser(std::move(tokens)); //含有一个token的deque
+                }
+                auto expressions = std::move(splitExpressions(tokens));
+                for (auto& expression : expressions) {
+                    Parser parser(std::move(expression)); //含有一个token的deque
                     auto value = parser.parse(); //一个ValuePtr的deque
                     auto result = env->eval(std::move(value));
-                    std::cout << result->toString() << std::endl; // 输出外部表示
+                    std::cout << result->toString() << std::endl; // 输出外部表示                    
                 }
             } catch (std::runtime_error& e) {
                 std::cerr << "Error: " << e.what() << std::endl;
@@ -112,27 +104,25 @@ int main(int argc, char* argv[]) {
         // File input mode
         while (std::getline(file, line)) {
             if (line == "") continue; //空行
-            size_t pos = line.find(';'); //忽略注释中的括号
-            if (pos != std::string::npos) {
-                line = line.substr(0, pos);
-            }
             try {
-                std::string text = line;
-                while (checkBracket(text)) { //读入直到括号匹配，多行读入
-                    if (checkBracket(text) == 2) {
+                auto current_tokens = Tokenizer::tokenize(line);
+                auto tokens = std::move(current_tokens);
+                while (checkBracket(tokens) != 0) {
+                    if (checkBracket(tokens) == 2) { //右括号多了
                         throw SyntaxError("too much \')\'");
-                    }
-                    if (std::getline(file, line)) {
-                        size_t pos = line.find(';');
-                        if (pos != std::string::npos) {
-                        line = line.substr(0, pos);
+                    } else { //左括号多了
+                        std::getline(std::cin, line);
+                        if (std::cin.eof()) {
+                            std::cin.clear(); 
+                            continue;
                         }
-                        text +=line;
-                    } else {
-                        throw SyntaxError("dismatched brackets");
+                        current_tokens = Tokenizer::tokenize(line);
+                        for (auto& token : current_tokens) {
+                            tokens.push_back(std::move(token));
+                        }
                     }
                 }
-                auto tokens = Tokenizer::tokenize(text);
+                
                 Parser parser(std::move(tokens));
                 auto value = parser.parse();
                 auto result = env->eval(std::move(value));
