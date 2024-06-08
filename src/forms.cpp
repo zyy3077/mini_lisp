@@ -9,17 +9,28 @@ void argumentNum(int x, int params) {
     }
 }
 ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    argumentNum(1, args.size());
+    if (args.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(args.size()) + " were given in \"quote\"");
+    }
     return args[0];
 }
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    argumentNum(3, args.size());
     auto condition = env.eval(args[0]);
-    //如果condition是#f，求值第二个表达式，否则求值第一个
-    if (condition->isFalse()) {
-        return env.eval(args[2]);
+    if (args.size() == 3) {
+        //如果condition是#f，求值第二个表达式，否则求值第一个
+        if (condition->isFalse()) {
+            return env.eval(args[2]);
+        } else {
+            return env.eval(args[1]);
+        }
+    } else if (args.size() == 2) { //实现可以接受忽略 ⟨⟨ 假分支 ⟩⟩ 的条件形式。此时，若 ⟨⟨ 条件 ⟩⟩ 求值为 虚值，则引发未定义行为。建议设置此时的求值结果为空表
+        if (condition->isFalse()) {
+            return std::make_shared<NilValue>();
+        } else {
+            return env.eval(args[1]);
+        }
     } else {
-        return env.eval(args[1]);
+        throw LispError("2 or 3 arguments expected but " + std::to_string(args.size()) + " were given in \"if\"");
     }
 }
 ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
@@ -59,7 +70,7 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     ValuePtr value;
     if (args[0]->asSymbol()) {
         if (args.size() > 2) {
-            throw LispError("too much operands for define");
+            throw LispError("2 arguments expected but " + std::to_string(args.size()) + " were given in \"define\"");
         }
         name = args[0]->asSymbol().value();
         value = env.eval(args[1]);
@@ -131,13 +142,15 @@ ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     for (auto p : vec) {
         auto v = std::dynamic_pointer_cast<PairValue>(p)->toVector(); //{name, val}
         params.push_back(v[0]->toString());
-        arguments.push_back(v[1]);
+        arguments.push_back(env.eval(v[1]));
     }
     auto lambda = std::make_shared<LambdaValue>(params, body, env.shared_from_this());
     return env.apply(lambda, arguments);
 }
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    argumentNum(1, args.size());
+    if (args.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(args.size()) + " were given in \"quasiquote\"");
+    }
     if (typeid(*args[0]) != typeid(PairValue)) return args[0];
     auto pair = std::dynamic_pointer_cast<PairValue>(args[0]);
     ValuePtr car = pair->getCar();

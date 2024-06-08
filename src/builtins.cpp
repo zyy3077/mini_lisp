@@ -31,12 +31,14 @@ ValuePtr substract(const std::vector<ValuePtr>& params, EvalEnv& env) {
         }
         return std::make_shared<NumericValue>(params[0]->asNumber() - params[1]->asNumber());
     } else {
-        throw LispError("too much arguments for substraction.");
+        throw LispError("too much arguments for \"substraction\".");
     }
 }
 ValuePtr print(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
-    std::cout << params[0]->toString() << '\n';
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"print\"");
+    }
+    std::cout << params[0]->toString();
     return std::make_shared<NilValue>();
 }
 ValuePtr multiply(const std::vector<ValuePtr>& params, EvalEnv& env) {
@@ -50,7 +52,9 @@ ValuePtr multiply(const std::vector<ValuePtr>& params, EvalEnv& env) {
     return std::make_shared<NumericValue>(result);
 }
 ValuePtr equivalent(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"=\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("cannot compare between non-numeric values");
     }
@@ -61,7 +65,9 @@ ValuePtr equivalent(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr smaller(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"<\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("cannot compare between non-numeric values");
     }
@@ -72,7 +78,9 @@ ValuePtr smaller(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr greater(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \">\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("cannot compare between non-numeric values");
     }
@@ -83,7 +91,9 @@ ValuePtr greater(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr greater_eq(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \">=\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("cannot compare between non-numeric values");
     }
@@ -94,7 +104,9 @@ ValuePtr greater_eq(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr smaller_eq(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"<=\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("cannot compare between non-numeric values");
     }
@@ -108,7 +120,9 @@ ValuePtr apply(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //( apply proc list )
     //调用 proc，并将 list 的元素作为调用的实参。
     //返回值：如是调用 proc 得到的返回值。
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"apply\"");
+    }
     return env.apply(params[0], params[1]->toVector());
     
 }
@@ -117,7 +131,9 @@ ValuePtr display(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //若 val 是字符串类型数据，则将字符串内容通过 标准输出 输出；
     //否则输出 val 的外部表示，实现可以在外部表示前添加单引号 '。
     //返回值：未定义；建议空表。
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"display\"");
+    }
     if (auto string = std::dynamic_pointer_cast<StringValue>(params[0])) {
         std::cout << string->getVal();
     } else {
@@ -126,7 +142,9 @@ ValuePtr display(const std::vector<ValuePtr>& params, EvalEnv& env) {
     return std::make_shared<NilValue>();
 }
 ValuePtr displayLn(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"displayln\"");
+    }
     if (auto string = std::dynamic_pointer_cast<StringValue>(params[0])) {
         std::cout << string->getVal() <<'\n';
     } else {
@@ -135,18 +153,24 @@ ValuePtr displayLn(const std::vector<ValuePtr>& params, EvalEnv& env) {
     return std::make_shared<NilValue>();
 }
 ValuePtr error(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"error\"");
+    }
     throw LispError(params[0]->toString());
     
 }
 ValuePtr eval(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //将 expr 作为 Mini-Lisp 程序表达式，对其进行求值。
     //返回值：求值结果。
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"eval\"");
+    }
     return env.eval(params[0]);
 }
 ValuePtr exitFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"exit\"");
+    }
     if (params[0]->isNumber()) {
         std::exit(int(params[0]->asNumber()));
     } else {
@@ -156,13 +180,17 @@ ValuePtr exitFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
 ValuePtr newline(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //向 标准输出 输出操作系统定义的换行符序列。
     //返回值：未定义；建议空表。
-    argumentNumError(0, params.size());
+    if (params.size() != 0) {
+        throw LispError("0 argument expected but " + std::to_string(params.size()) + " were given in \"newline\"");
+    }
     std::cout << '\n';
     return std::make_shared<NilValue>();
 }
 ValuePtr isAtom(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //返回值：若 arg 为布尔类型、数类型、字符串类型、符号类型或空表类型的值，则返回 #t；否则返回 #f。
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"atom?\"");
+    }
     if (typeid(*params[0]) == typeid(BooleanValue) || typeid(*params[0]) == typeid(NumericValue) ||typeid(*params[0]) == typeid(SymbolValue) || typeid(*params[0]) == typeid(StringValue) || typeid(*params[0]) == typeid(NilValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -170,7 +198,9 @@ ValuePtr isAtom(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isBoolean(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"boolean?\"");
+    }
     if (typeid(*params[0]) == typeid(BooleanValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -178,7 +208,9 @@ ValuePtr isBoolean(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isInteger(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"integer?\"");
+    }
     if (typeid(*params[0]) == typeid(NumericValue) && params[0]->asNumber() == int(params[0]->asNumber())) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -186,7 +218,9 @@ ValuePtr isInteger(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isList(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"list?\"");
+    }
      if (params[0]->isList()) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -194,7 +228,9 @@ ValuePtr isList(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isNum(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"num?\"");
+    }
      if (params[0]->isNumber()) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -202,7 +238,9 @@ ValuePtr isNum(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isNull(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"null?\"");
+    }
      if (typeid(*params[0]) == typeid(NilValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -210,7 +248,9 @@ ValuePtr isNull(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isPair(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"pair?\"");
+    }
      if (typeid(*params[0]) == typeid(PairValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -218,7 +258,9 @@ ValuePtr isPair(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isProc(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"proc?\"");
+    }
      if (typeid(*params[0]) == typeid(BuiltinProcValue) || typeid(*params[0]) == typeid(LambdaValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -226,7 +268,9 @@ ValuePtr isProc(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isString(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"string?\"");
+    }
      if (typeid(*params[0]) == typeid(StringValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -234,7 +278,9 @@ ValuePtr isString(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isSymbol(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"symbol?\"");
+    }
      if (typeid(*params[0]) == typeid(SymbolValue)) {
         return std::make_shared<BooleanValue>(true);
     } else {
@@ -252,11 +298,13 @@ ValuePtr appendFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //返回值：拼接后的列表；实参个数为零时返回空表。
     //(append '(1 2 3) '(a b c) '(foo bar baz)) ⇒ '(1 2 3 a b c foo bar baz)
     if (!params.size()) return std::make_shared<NilValue>();
+    
     std::vector<ValuePtr> res;
     for (int i = 0; i < params.size(); ++i) {
         if (!params[i]->isList()) {
             throw LispError("list expected in append");
         } else {
+            //std::cout<<params[i]->toString()<<'\n';
             auto v = params[i]->toVector();
             res.insert(res.end(), v.begin(), v.end());
         }
@@ -264,7 +312,9 @@ ValuePtr appendFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
     return vector2list(res, env);
 }
 ValuePtr car(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"car\"");
+    }
     if (auto pair = std::dynamic_pointer_cast<PairValue>(params[0])) {
         return pair->getCar();
     } else {
@@ -272,8 +322,10 @@ ValuePtr car(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr cdr(const std::vector<ValuePtr>& params, EvalEnv& env) {
-     argumentNumError(1, params.size());
-     if (auto pair = std::dynamic_pointer_cast<PairValue>(params[0])) {
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"cdr\"");
+    }
+    if (auto pair = std::dynamic_pointer_cast<PairValue>(params[0])) {
         return pair->getCdr();
     } else {
         throw LispError("pair expected in \"cdr\"");
@@ -281,13 +333,16 @@ ValuePtr cdr(const std::vector<ValuePtr>& params, EvalEnv& env) {
 }
 ValuePtr cons(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //返回值：以 first 为左半部分，rest 为右半部分的对子类型数据。
-    argumentNumError(2, params.size());
-    return std::make_shared<PairValue>(params[0], params[2]);
-    
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"cons\"");
+    }
+    return std::make_shared<PairValue>(params[0], params[1]);   
 }
 ValuePtr length(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //返回值：非负整数，list 的元素个数。
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"length\"");
+    }
     if (!params[0]->isList()) {
         throw LispError("list expected in \"length\"");
     } else {
@@ -299,7 +354,9 @@ ValuePtr map(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //( map proc list )
     //proc 应能接受一个实参。返回值：一个新列表，其中的每个元素都是 list 中对应位置元素被 proc 作用后的结果。
     //(map - '(1 2 3)) ⇒ '(-1 -2 -3)
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"map\"");
+    }
     std::vector<ValuePtr> result;
     std::ranges::transform(params[1]->toVector(),//将list转化成vector
                            std::back_inserter(result),
@@ -311,7 +368,9 @@ ValuePtr filter(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //( filter proc list )
     //proc 应能接受一个实参。返回值：一个新列表，其中包含 list 中被 proc 作用后得到非虚值的元素，按原有顺序排列。
     //(filter odd? '(1 2 3 4)) ⇒ '(1 3)
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"filter\"");
+    }
     std::vector<ValuePtr> result;
     auto vec = params[1]->toVector();
     std::copy_if(vec.begin(), vec.end(), std::back_inserter(result), 
@@ -324,7 +383,9 @@ ValuePtr reduce(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //proc 应当接受两个实参。list 不能为空表。
     //返回值：若 ( length list ) 求值为 1，则返回 ( car list )；否则返回 ( proc ( car list ) ( reduce proc ( cdr list ) ) )。
     //(reduce * '(1 2 3 4)) ⇒ 24
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"reduce\"");
+    }
     if (!params[1]->isList()) {
         throw LispError("the second argument in \"reduce\" should be a list");
     } else if (typeid(*params[1]) == typeid(NilValue)) {
@@ -355,12 +416,12 @@ ValuePtr divide(const std::vector<ValuePtr>& params, EvalEnv& env) {
         }
         return std::make_shared<NumericValue>(params[0]->asNumber() / params[1]->asNumber());
     } else {
-        throw LispError("too much arguments for division.");
+        throw LispError("1 or 2 arguments expected but " + std::to_string(params.size()) + " were given in \"/\"");
     }
 }
 ValuePtr absolute(const std::vector<ValuePtr>& params, EvalEnv& env) {
     if (params.size() != 1) {
-        throw LispError("1 argument expected in \"abs\"");
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"abs\"");
     } else if (!params[0]->isNumber()) {
         throw LispError("Cannot abs a non-numeric value");
     } else {
@@ -369,7 +430,9 @@ ValuePtr absolute(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr expt(const std::vector<ValuePtr>& params, EvalEnv& env) { //不支持复数
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"exp\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("Cannot expt non-numeric value");
     } else if (params[0]->asNumber() == 0 && params[1]->asNumber() == 0) {
@@ -379,7 +442,9 @@ ValuePtr expt(const std::vector<ValuePtr>& params, EvalEnv& env) { //不支持�
     }
 }
 ValuePtr quotient(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"quotient\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("Cannot quotient non-numeric value");
     }
@@ -389,7 +454,9 @@ ValuePtr quotient(const std::vector<ValuePtr>& params, EvalEnv& env) {
 ValuePtr modulo(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //( modulo x y )
     //返回值：与 y 具有相同正负性的值 𝑞，满足 0⩽∣𝑞∣<∣𝑦∣ 且 𝑦 整除 ∣𝑞−𝑥∣。
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"module\"");
+    }
     if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("Cannot mod non-numeric value");
     }
@@ -404,26 +471,38 @@ ValuePtr modulo(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr remain(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"remainder\"");
+    }
      if (!params[0]->isNumber() || !params[1]->isNumber()) {
         throw LispError("Cannot mod non-numeric value");
     }
     double x = params[0]->asNumber();
     double y = params[1]->asNumber();
+    
     if (y == 0) {
         throw LispError("divided by zero");
     } else {
-        return std::make_shared<NumericValue>(remainder(x, y));
+        double rem = remainder(x, y);
+        if(rem * x < 0) {
+            if (x > 0) rem += abs(y);
+            else rem -= abs(y);
+        }
+        return std::make_shared<NumericValue>(rem);
     }
 }
 ValuePtr isEqual(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"equal?\"");
+    }
     return std::make_shared<BooleanValue>(params[0]->isEqual(*params[1]));
 }
 ValuePtr isEq(const std::vector<ValuePtr>& params, EvalEnv& env) {
     //对于符号类型、数类型、布尔类型、空表类型来说，equal? 和 eq? 都是返回值是否相等；
     //而对子类型、字符串类型和过程类型的 eq? 则是表明存储它们的地址（即 std::shared_ptr 本身）是否是相同的。
-    argumentNumError(2, params.size());
+    if (params.size() != 2) {
+        throw LispError("2 arguments expected but " + std::to_string(params.size()) + " were given in \"eq?\"");
+    }
     if (typeid(*params[0]) != typeid(*params[1])) return std::make_shared<BooleanValue>(false);
     if (typeid(*params[0]) == typeid(SymbolValue) || typeid(*params[0]) == typeid(NumericValue) || typeid(*params[0]) == typeid(BooleanValue) || typeid(*params[0]) == typeid(NilValue)) {
         return std::make_shared<BooleanValue>(params[0]->isEqual(*params[1]));
@@ -432,11 +511,15 @@ ValuePtr isEq(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr notFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"not\"");
+    }
     return std::make_shared<BooleanValue>(params[0]->isFalse());
 }
-ValuePtr isEven(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+ValuePtr isOdd(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"odd?\"");
+    }
     if (!params[0]->isNumber()) {
         throw LispError("numeric value expected");
     }
@@ -448,8 +531,10 @@ ValuePtr isEven(const std::vector<ValuePtr>& params, EvalEnv& env) {
         return std::make_shared<BooleanValue>(false);
     }
 }
-ValuePtr isOdd(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+ValuePtr isEven(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"even?\"");
+    }
     if (!params[0]->isNumber()) {
         throw LispError("numeric value expected");
     }
@@ -462,7 +547,9 @@ ValuePtr isOdd(const std::vector<ValuePtr>& params, EvalEnv& env) {
     }
 }
 ValuePtr isZero(const std::vector<ValuePtr>& params, EvalEnv& env) {
-    argumentNumError(1, params.size());
+    if (params.size() != 1) {
+        throw LispError("1 argument expected but " + std::to_string(params.size()) + " were given in \"zero?\"");
+    }
     if (!params[0]->isNumber()) {
         throw LispError("numeric value expected");
     }

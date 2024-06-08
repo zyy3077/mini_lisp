@@ -4,7 +4,7 @@
 #include "./tokenizer.h"
 #include "./parse.h"
 #include "./eval_env.h"
-
+#include <fstream>
 
 #include "rjsj_test.hpp"
 struct TestCtx {
@@ -17,27 +17,56 @@ struct TestCtx {
         return result->toString();
     }
 };
-int main() {
-    //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv6);
+int main(int argc, char* argv[]) {
+    //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
     auto env = EvalEnv::createGlobal();
-    while (true) {
-        try {
-            std::cout << ">>> " ;
-            std::string line;
-            std::getline(std::cin, line);
-            if (std::cin.eof()) {
-                std::exit(0);
-            }
-            auto tokens = Tokenizer::tokenize(line);
-            // for (auto& token : tokens) {
-            //     std::cout << *token << std::endl;
-            // }
-            Parser parser(std::move(tokens)); // TokenPtr 不支持复制
-            auto value = parser.parse();
-            auto result = env->eval(std::move(value));
-            std::cout << result->toString() << std::endl; // 输出外部表示
-        } catch (std::runtime_error& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
+    std::string line;
+    int mode = 1; // Default to standard input mode
+    std::ifstream file;
+
+    // Check if a file path was provided
+    if (argc >= 2) {
+        file.open(argv[1]);
+        if (file) {
+            mode = 2; // Switch to file input mode
+        } else {
+            std::cerr << "Error: Could not open file " << argv[1] << "\n";
+            return 1;
         }
     }
+
+    if (mode == 1) {
+        // Standard input mode
+        while (true) {
+            try {
+                std::cout << ">>> " ;
+                std::getline(std::cin, line);
+                if (std::cin.eof()) {
+                    std::exit(0);
+                }
+                auto tokens = Tokenizer::tokenize(line);
+                Parser parser(std::move(tokens));
+                auto value = parser.parse();
+                auto result = env->eval(std::move(value));
+                std::cout << result->toString() << std::endl; // 输出外部表示
+            } catch (std::runtime_error& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
+            }
+        }
+    } else if (mode == 2) {
+        // File input mode
+        while (std::getline(file, line)) {
+            if (line == "") continue;
+            try {
+                auto tokens = Tokenizer::tokenize(line);
+                Parser parser(std::move(tokens));
+                auto value = parser.parse();
+                auto result = env->eval(std::move(value));
+            } catch (std::runtime_error& e) {
+                std::cerr << "Error: " << e.what() << std::endl;
+            }
+        }
+    }
+
+    return 0;
 }

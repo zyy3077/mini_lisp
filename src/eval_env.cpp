@@ -42,10 +42,16 @@ ValuePtr EvalEnv::lookupBinding(const std::string& name) {
     auto currentEnv = this;
     
     while(currentEnv->symbolMap.find(name) == currentEnv->symbolMap.end()) {
-        currentEnv = this->parent.get();
+        //if (name == "quicksort")  std::cout<<"----------lookupbinding----------\n";
+        //######################在这里的死循环######################################
+        currentEnv = currentEnv->parent ? currentEnv->parent.get() : nullptr;
         if (!currentEnv) break;//parent为nullptr的为最大的环境
     }
+    
     if (currentEnv) {
+        //if (name == "quicksort") {
+        //     std::cout<<currentEnv->symbolMap.at(name)->toString()<<'\n';
+        // }
         return currentEnv->symbolMap.at(name);
     } else {
         throw LispError("Variable \"" + name + "\" not defined.");
@@ -57,6 +63,7 @@ void EvalEnv::defineBinding(const std::string& name, ValuePtr value) {
 
 //求值
 ValuePtr EvalEnv::eval(ValuePtr expr) {
+    //std::cout<<expr->toString()<<'\n';
     if (expr->isSeflEvaluating()) {
         return expr;
     } else if (expr->isNil()) {

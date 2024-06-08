@@ -1,0 +1,10 @@
+(define (sqrt-iter guess x) (if (good-enough? guess x) guess (sqrt-iter (improve guess x) x))) 
+(define (improve guess x) (average guess (/ x guess))) 
+(define (average x y) (/ (+ x y) 2)) 
+(define (square x) (* x x))
+ 
+(define (sqrt x) (sqrt-iter 1.0 x))
+(define (good-enough? guess) (< (abs (- (square guess) x)) 0.001))
+
+(define (sqrt x) (define (good-enough? guess) (< (abs (- (square guess) x)) 0.001)) (define (improve guess) (average guess (/ x guess))) (define (sqrt-iter guess) (if (good-enough? guess) guess (sqrt-iter (improve guess)))) (print (sqrt-iter 1.0)) (sqrt-iter 1.0))
+(define (quicksort lst) (if (null? lst) '() (let ((less (filter (lambda (x) (< x (car lst))) (cdr lst))) (greater (filter (lambda (x) (>= x (car lst))) (cdr lst)))) (append (quicksort less) (list (car lst)) (quicksort greater))))) 

@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 //构造函数
 Value::Value(){}
@@ -51,7 +52,7 @@ std::string PairValue::toString() const {
     }
     if (rightIsNil) {}//空表不增加输出
     else {
-        res += " . " + right->toString();
+        res += " . " + nextRight->toString();
     }
     return "(" + res + ")";
 }
@@ -189,6 +190,7 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args) {
     ValuePtr res = nullptr;
     for (auto expr : body) {
         res = child->eval(expr);
+        //std::cout<<res->toString()<<'\n';
     }
     return res;
 }
