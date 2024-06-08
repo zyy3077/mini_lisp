@@ -5,7 +5,7 @@
 #include "./parse.h"
 #include "./eval_env.h"
 #include <fstream>
-
+#include "./error.h"
 #include "rjsj_test.hpp"
 struct TestCtx {
     std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
@@ -17,6 +17,21 @@ struct TestCtx {
         return result->toString();
     }
 };
+bool checkBracket(const std::string& text) {
+    const char* cstr = text.c_str();
+    std::deque<char> stack;
+    for (int i = 0; i < strlen(cstr); ++i) {
+        if (cstr[i] == '(') {
+            stack.push_back('(');
+        } else if(cstr[i] == ')') {
+            if (stack.empty()) return false;
+            stack.pop_back();
+        }
+    }
+    if (stack.empty()) return true;
+    return false;
+}
+
 int main(int argc, char* argv[]) {
     //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
     auto env = EvalEnv::createGlobal();
@@ -39,12 +54,13 @@ int main(int argc, char* argv[]) {
         // Standard input mode
         while (true) {
             try {
+                std::string text;
                 std::cout << ">>> " ;
-                std::getline(std::cin, line);
-                if (std::cin.eof()) {
-                    std::exit(0);
-                }
-                auto tokens = Tokenizer::tokenize(line);
+                do {
+                    std::getline(std::cin, line);
+                    text += line;
+                } while (!checkBracket(text)); //读入直到括号匹配再tokenize
+                auto tokens = Tokenizer::tokenize(text);
                 Parser parser(std::move(tokens)); //含有一个token的deque
                 auto value = parser.parse(); //一个ValuePtr的deque
                 auto result = env->eval(std::move(value));
@@ -58,7 +74,16 @@ int main(int argc, char* argv[]) {
         while (std::getline(file, line)) {
             if (line == "") continue;
             try {
-                auto tokens = Tokenizer::tokenize(line);
+                std::string text = line;
+                while (!checkBracket(text)) { //读入直到括号匹配
+                    if (std::getline(file, line)) {
+                        text +=line;
+                    } else {
+                        throw SyntaxError("dismatched brackets");
+                    }
+                }
+                
+                auto tokens = Tokenizer::tokenize(text);
                 Parser parser(std::move(tokens));
                 auto value = parser.parse();
                 auto result = env->eval(std::move(value));
