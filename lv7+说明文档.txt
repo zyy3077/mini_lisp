@@ -1,0 +1,18 @@
+1、 多行输入
+    >>>(define (f x)
+                (+ x x))
+    ()
+    实现：读取直到括号匹配后开始tokenize
+
+2、 一次求值多个表达式
+    >>>1 2
+    1
+    2
+    >>>(define x 5) (define y 10)
+    ()
+    ()
+    >>>x y
+    5
+    10
+    实现：splitExpression函数
+
