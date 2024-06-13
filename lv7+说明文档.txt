@@ -4,7 +4,7 @@
     ()
     >>>(f 1)
     2
-    实现：读取直到括号匹配后开始parse
+    实现：(main.cpp)直到tokens中括号匹配后开始parse
 
 2、 一次求值多个表达式
     >>>1 2
@@ -16,5 +16,24 @@
     >>>x y
     5
     10
-    实现：splitExpression函数
+    实现：(main.cpp)splitExpression函数
 
+3、多行注释
+    >>>(define #|z 5 ) |# w 2)
+    ()
+    >>>w
+    2
+    >>>z
+    Error: Variable "z" not defined.
+    >>>(define x 5)
+        #|
+        这是一个多行注释。
+        它可以跨越多行。
+        |# 
+        (define y 10)
+    ()
+    ()
+    >>>x y
+    5
+    10
+    实现：(tokenizer.cpp)多行注释部分

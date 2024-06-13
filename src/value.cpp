@@ -100,30 +100,22 @@ std::optional<std::string> Value::asSymbol() {
 }
 bool Value::isFalse() {
     if (auto boolean = dynamic_cast<BooleanValue*>(this)) {
-            if (boolean->getVal() == false) return true;
+        if (boolean->getVal() == false) return true;
     }
     return false; 
 }
-bool BooleanValue::isEqual(const Value& other) const {
-    const BooleanValue* otherBoolean = dynamic_cast<const BooleanValue*>(&other);
-    return otherBoolean && otherBoolean->getVal() == this->getVal();
-}
-bool NumericValue::isEqual(const Value& other) const {
-    const NumericValue* otherNumeric = dynamic_cast<const NumericValue*>(&other);
-    return otherNumeric && otherNumeric->getVal() == this->getVal();
-}
-bool StringValue::isEqual(const Value& other) const {
-    const StringValue* otherString = dynamic_cast<const StringValue*>(&other);
-    return otherString && otherString->getVal() == this->getVal();
+
+template <typename T>
+bool Value::isEqual(const Value& a, const Value& b) const {
+    const T* aT = dynamic_cast<const T*>(&a);
+    const T* bT = dynamic_cast<const T*>(&b);
+    return aT && bT && aT->getVal() == bT->getVal();
 }
 bool NilValue::isEqual(const Value& other) const {
     const NilValue* otherNil = dynamic_cast<const NilValue*>(&other);
     return otherNil;
 }
-bool SymbolValue::isEqual(const Value& other) const {
-    const SymbolValue* otherSymbol= dynamic_cast<const SymbolValue*>(&other);
-    return otherSymbol && otherSymbol->toString() == this->toString();
-}
+
 bool PairValue::isEqual(const Value& other) const {
     const PairValue* otherPair = dynamic_cast<const PairValue*>(&other);
     return otherPair && left->isEqual(*otherPair->left) && right->isEqual(*otherPair->right);
@@ -155,31 +147,11 @@ std::vector<std::shared_ptr<Value>> Value::toVector() {
     }
     return vec;
 }
-std::shared_ptr<Value> PairValue::getCdr() {
-    return right;
-}
-std::shared_ptr<Value> PairValue::getCar() {
-    return left;
-}
-void PairValue::setCdr(ValuePtr n_right) {
-    right = n_right;
-}
-void PairValue::setCar(ValuePtr n_left) {
-    left = n_left;
-}
 
 BuiltinFuncType* BuiltinProcValue::getFunc() const {
     return func;
 }
-bool BooleanValue::getVal() const {
-    return val;
-}
-double NumericValue::getVal() const {
-    return val;
-}
-std::string StringValue::getVal() const {
-    return val;
-}
+
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args) {
     //首先是创建一个新的 Lambda 内部求值环境。

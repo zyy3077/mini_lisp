@@ -3,16 +3,40 @@
 #include <iterator>
 #include <ranges> 
 #include <iostream>
-void argumentNum(int x, int params) {
-    if (params != x) {
-        throw LispError(std::to_string(x) + " arguments expected but " + std::to_string(params) + " were given");
+
+void numCheck(const std::vector<ValuePtr>& params, int expectedNum) {
+    if (params.size() != expectedNum) {
+        throw LispError("Incorrect number of arguments.");
     }
 }
-ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 1) {
-        throw LispError("1 argument expected but " + std::to_string(args.size()) + " were given in \"quote\"");
+void paramsCheck(const std::vector<ValuePtr>& params, int expectedNum, Type expectedType) {
+    numCheck(params, expectedNum);
+    for (const auto& param : params) {
+        if (param->getType() != expectedType) {
+            throw LispError("Incorrect type of argument.");
+        }
     }
+}
+
+
+ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    numCheck(args, 1);
     return args[0];
+}
+ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
+    numCheck(args, 1);
+    if (typeid(*args[0]) != typeid(PairValue)) return args[0];
+    auto pair = std::dynamic_pointer_cast<PairValue>(args[0]);
+    ValuePtr car = pair->getCar();
+    ValuePtr cdr = pair->getCdr();
+    if (typeid(*car) == typeid(SymbolValue) && car->asSymbol() == "unquote") {
+        if (auto cdrPair = std::dynamic_pointer_cast<PairValue>(cdr)) {
+        return env.eval(cdrPair->getCar());
+        } else return env.eval(cdr);
+    } 
+    car = quasiquoteForm({car}, env);
+    cdr = quasiquoteForm({cdr}, env);
+    return std::make_shared<PairValue>(car, cdr);    
 }
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     auto condition = env.eval(args[0]);
@@ -68,13 +92,11 @@ ValuePtr labmdaForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     std::string name;
     ValuePtr value;
-    if (args.size() == 0) {
-        throw LispError("argument is expected in \"define\"");
+    if (args.size() < 2) {
+        throw LispError("Incorrect number of arguments.");
     }
     if (args[0]->asSymbol()) {
-        if (args.size() > 2) {
-            throw LispError("2 arguments expected but " + std::to_string(args.size()) + " were given in \"define\"");
-        }
+        numCheck(args, 2);
         name = args[0]->asSymbol().value();
         value = env.eval(args[1]);
         env.defineBinding(name, value);
@@ -87,7 +109,7 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
         env.defineBinding(name, value);
         return std::make_shared<NilValue>();
     } else {
-        throw LispError("Unimplemented");
+        throw LispError("TypeError.");
     }
 };
 ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
@@ -129,12 +151,6 @@ ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     return res;
 }
 ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    //(let ((形参名1 值1)
-    //      (形参名2 值2)...)
-    //     表达式...)
-    //(let ((x 5) 
-    //     (y 10)) 
-    //     (print x) (print y) (+ x y))
     std::vector<std::string> params;
     std::vector<ValuePtr> arguments;
     std::vector<ValuePtr> body(args.begin() + 1, args.end());
@@ -144,29 +160,17 @@ ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
     auto vec = std::dynamic_pointer_cast<PairValue>(args[0])->toVector(); //{(name, val), (name, val), ...}
     for (auto p : vec) {
         auto v = std::dynamic_pointer_cast<PairValue>(p)->toVector(); //{name, val}
+        if (v.size() != 2) {
+            throw LispError("a name should be bound to one val");
+        }
         params.push_back(v[0]->toString());
         arguments.push_back(env.eval(v[1]));
     }
     auto lambda = std::make_shared<LambdaValue>(params, body, env.shared_from_this());
     return env.apply(lambda, arguments);
 }
-ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env) {
-    if (args.size() != 1) {
-        throw LispError("1 argument expected but " + std::to_string(args.size()) + " were given in \"quasiquote\"");
-    }
-    if (typeid(*args[0]) != typeid(PairValue)) return args[0];
-    auto pair = std::dynamic_pointer_cast<PairValue>(args[0]);
-    ValuePtr car = pair->getCar();
-    ValuePtr cdr = pair->getCdr();
-    if (typeid(*car) == typeid(SymbolValue) && car->asSymbol() == "unquote") {
-        if (auto cdrPair = std::dynamic_pointer_cast<PairValue>(cdr)) {
-        return env.eval(cdrPair->getCar());
-        } else return env.eval(cdr);
-    } 
-    car = quasiquoteForm({car}, env);
-    cdr = quasiquoteForm({cdr}, env);
-    return std::make_shared<PairValue>(car, cdr);    
-}
+
+
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS = {
     {"define", defineForm}, 
     {"quote", quoteForm}, 

@@ -7,11 +7,22 @@
 #include "./error.h"
 
 const std::set<char> TOKEN_END{'(', ')', '\'', '`', ',', '"'};
-
+bool in_multiline_comment = false;
 TokenPtr Tokenizer::nextToken(int& pos) {
     while (pos < input.size()) {
         auto c = input[pos];
-        if (c == ';') {
+        ////////多行注释////////////////////////////////////
+        if (in_multiline_comment) {
+            if (c == '|' && pos + 1 < input.size() && input[pos + 1] == '#') {
+                pos += 2;
+                in_multiline_comment = false;
+            } else {
+                pos++;
+            }
+        } else if (c == '#' && pos + 1 < input.size() && input[pos + 1] == '|') {
+            pos += 2;
+            in_multiline_comment = true;
+        } else if (c == ';') {/////////////////////////////
             while (pos < input.size() && input[pos] != '\n') {
                 pos++;
             }

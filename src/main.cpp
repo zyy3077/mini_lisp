@@ -43,94 +43,100 @@ std::deque<std::deque<TokenPtr>> splitExpressions(std::deque<TokenPtr>& tokens) 
     }
     return expressions;
 }
+void standardInput(std::shared_ptr<EvalEnv> env) {
+    std::string line;
+    while (true) {
+        try {
+            std::cout << ">>> " ;
+            std::getline(std::cin, line);
+            if (std::cin.eof()) {
+                std::cin.clear(); 
+                continue;
+            }
+            auto current_tokens = Tokenizer::tokenize(line);
+            auto tokens = std::move(current_tokens);
+            while (checkBracket(tokens) != 0) {
+                if (checkBracket(tokens) == 2) { //右括号多了
+                    throw SyntaxError("too much \')\'");
+                } else { //左括号多了
+                    std::getline(std::cin, line);
+                    if (std::cin.eof()) {
+                        std::cin.clear(); 
+                        continue;
+                    }
+                    current_tokens = Tokenizer::tokenize(line);
+                    for (auto& token : current_tokens) {
+                        tokens.push_back(std::move(token));
+                    }
+                }
+            }
+            auto expressions = std::move(splitExpressions(tokens));
+            for (auto& expression : expressions) {
+                Parser parser(std::move(expression)); //含有一个token的deque
+                auto value = parser.parse(); //一个ValuePtr的deque
+                auto result = env->eval(std::move(value));
+                std::cout << result->toString() << std::endl; // 输出外部表示                    
+            }
+        } catch (std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+}
+void fileInput(std::ifstream& file, std::shared_ptr<EvalEnv> env) {
+    std::string line;
+     while (std::getline(file, line)) {
+        if (line == "") continue; //空行
+        try {
+            auto current_tokens = Tokenizer::tokenize(line);
+            auto tokens = std::move(current_tokens);
+            while (checkBracket(tokens) != 0) {
+                if (checkBracket(tokens) == 2) { //右括号多了
+                    throw SyntaxError("too much \')\'");
+                } else { //左括号多了
+                    if (std::getline(file, line)) {
+                        if (std::cin.eof()) {
+                            std::cin.clear(); 
+                            continue;
+                        }
+                        current_tokens = Tokenizer::tokenize(line);
+                        for (auto& token : current_tokens) {
+                            tokens.push_back(std::move(token));
+                        }
+                    } else {
+                        throw SyntaxError("dismatched brackets");
+                    }
+                }
+            }
+            auto expressions = std::move(splitExpressions(tokens));
+            for (auto& expression : expressions) {
+                Parser parser(std::move(expression)); //含有一个token的deque
+                auto value = parser.parse(); //一个ValuePtr的deque
+                auto result = env->eval(std::move(value));                   
+            }
+        } catch (std::runtime_error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+}
 
 int main(int argc, char* argv[]) {
     //RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv5Extra, Lv6, Lv7, Lv7Lib, Sicp);
     auto env = EvalEnv::createGlobal();
-    std::string line;
-    int mode = 1; // Default to standard input mode
     std::ifstream file;
+    int mode = 1;
 
     // Check if a file path was provided
     if (argc >= 2) {
         file.open(argv[1]);
-        if (file) {
-            mode = 2; // Switch to file input mode
-        } else {
+        if (file) mode = 2; // Switch to file input mode
+         else {
             std::cerr << "Error: Could not open file " << argv[1] << "\n";
             return 1;
         }
     }
 
-    if (mode == 1) {
-        // Standard input mode
-        while (true) {
-            try {
-                std::cout << ">>> " ;
-                std::getline(std::cin, line);
-                if (std::cin.eof()) {
-                    std::cin.clear(); 
-                    continue;
-                }
-                auto current_tokens = Tokenizer::tokenize(line);
-                auto tokens = std::move(current_tokens);
-                while (checkBracket(tokens) != 0) {
-                    if (checkBracket(tokens) == 2) { //右括号多了
-                        throw SyntaxError("too much \')\'");
-                    } else { //左括号多了
-                        std::getline(std::cin, line);
-                        if (std::cin.eof()) {
-                            std::cin.clear(); 
-                            continue;
-                        }
-                        current_tokens = Tokenizer::tokenize(line);
-                        for (auto& token : current_tokens) {
-                            tokens.push_back(std::move(token));
-                        }
-                    }
-                }
-                auto expressions = std::move(splitExpressions(tokens));
-                for (auto& expression : expressions) {
-                    Parser parser(std::move(expression)); //含有一个token的deque
-                    auto value = parser.parse(); //一个ValuePtr的deque
-                    auto result = env->eval(std::move(value));
-                    std::cout << result->toString() << std::endl; // 输出外部表示                    
-                }
-            } catch (std::runtime_error& e) {
-                std::cerr << "Error: " << e.what() << std::endl;
-            }
-        }
-    } else if (mode == 2) {
-        // File input mode
-        while (std::getline(file, line)) {
-            if (line == "") continue; //空行
-            try {
-                auto current_tokens = Tokenizer::tokenize(line);
-                auto tokens = std::move(current_tokens);
-                while (checkBracket(tokens) != 0) {
-                    if (checkBracket(tokens) == 2) { //右括号多了
-                        throw SyntaxError("too much \')\'");
-                    } else { //左括号多了
-                        std::getline(std::cin, line);
-                        if (std::cin.eof()) {
-                            std::cin.clear(); 
-                            continue;
-                        }
-                        current_tokens = Tokenizer::tokenize(line);
-                        for (auto& token : current_tokens) {
-                            tokens.push_back(std::move(token));
-                        }
-                    }
-                }
-                
-                Parser parser(std::move(tokens));
-                auto value = parser.parse();
-                auto result = env->eval(std::move(value));
-            } catch (std::runtime_error& e) {
-                std::cerr << "Error: " << e.what() << std::endl;
-            }
-        }
-    }
+    if (mode == 1) standardInput(env);
+    else fileInput(file, env);
 
     return 0;
 }
