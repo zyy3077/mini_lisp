@@ -94,10 +94,6 @@ void fileInput(std::ifstream& file, std::shared_ptr<EvalEnv> env) {
                     throw SyntaxError("too much \')\'");
                 } else { //左括号多了
                     if (std::getline(file, line)) {
-                        if (std::cin.eof()) {
-                            std::cin.clear(); 
-                            continue;
-                        }
                         current_tokens = Tokenizer::tokenize(line);
                         for (auto& token : current_tokens) {
                             tokens.push_back(std::move(token));

@@ -115,7 +115,6 @@ bool NilValue::isEqual(const Value& other) const {
     const NilValue* otherNil = dynamic_cast<const NilValue*>(&other);
     return otherNil;
 }
-
 bool PairValue::isEqual(const Value& other) const {
     const PairValue* otherPair = dynamic_cast<const PairValue*>(&other);
     return otherPair && left->isEqual(*otherPair->left) && right->isEqual(*otherPair->right);

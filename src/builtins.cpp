@@ -176,6 +176,9 @@ ValuePtr error(const std::vector<ValuePtr>& params, EvalEnv& env) {
     throw LispError(params[0]->toString());
 }
 ValuePtr exitFunc(const std::vector<ValuePtr>& params, EvalEnv& env) {
+    if (params.size() == 0) {
+        std::exit(0);
+    }
     checkParams(params, 1 ,Type::Number);
     if (params[0]->asNumber() == int(params[0]->asNumber())) {
         std::exit(int(params[0]->asNumber()));
